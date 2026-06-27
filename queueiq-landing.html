@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QueueIQ — Smarter queues. Happier customers. Better business.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-0:#06071a;
+    --bg-1:#0a0c28;
+    --bg-2:#150f3a;
+    --surface:#11142e;
+    --surface-2:#171a3c;
+    --surface-3:#1d2147;
+    --border:rgba(255,255,255,0.08);
+    --border-soft:rgba(255,255,255,0.14);
+    --blue:#4f7df0;
+    --blue-strong:#3461e6;
+    --purple:#9b5cf0;
+    --purple-soft:#b07cf5;
+    --green:#34d399;
+    --text-0:#f7f8fc;
+    --text-1:#c7cbe8;
+    --text-2:#8d92b8;
+    --text-3:#5f6390;
+    --grad-brand: linear-gradient(135deg, var(--blue) 0%, var(--purple) 100%);
+    --radius-lg: 22px;
+    --radius-md: 14px;
+    --radius-sm: 9px;
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+
+  html{ scroll-behavior:smooth; }
+
+  body{
+    background: radial-gradient(1200px 700px at 88% 8%, rgba(79,125,240,0.16), transparent 60%),
+                radial-gradient(1100px 900px at 96% 96%, rgba(155,92,240,0.22), transparent 55%),
+                linear-gradient(160deg, var(--bg-0) 0%, var(--bg-1) 45%, var(--bg-2) 100%);
+    background-color:var(--bg-0);
+    color: var(--text-0);
+    font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+    overflow-x:hidden;
+    position:relative;
+  }
+
+  /* ambient wave texture, bottom right, very faint */
+  .bg-waves{
+    position:fixed; inset:0; z-index:0; pointer-events:none; opacity:0.35;
+  }
+
+  main{ position:relative; z-index:1; }
+
+  .wrap{
+    max-width:1440px;
+    margin:0 auto;
+    padding: 64px 64px 56px;
+  }
+
+  .hero-grid{
+    display:grid;
+    grid-template-columns: minmax(420px, 620px) 1fr;
+    gap:48px;
+    align-items:start;
+  }
+
+  /* ---------- Logo ---------- */
+  .logo{
+    display:flex; align-items:center; gap:14px;
+    margin-bottom:28px;
+  }
+  .logo-mark{
+    width:52px; height:52px; flex:none;
+  }
+  .logo-word{
+    font-family:'Space Grotesk', 'Inter', sans-serif;
+    font-weight:700;
+    font-size:34px;
+    letter-spacing:-0.01em;
+    color:var(--text-0);
+  }
+  .logo-word .iq{
+    background:var(--grad-brand);
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+
+  /* ---------- Tagline ---------- */
+  .tagline{
+    font-size:13.5px;
+    font-weight:700;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    margin-bottom:30px;
+  }
+  .tagline .t1{ color:#6f93f7; }
+  .tagline .t2{ color:var(--purple-soft); }
+  .tagline .t3{ color:var(--text-1); }
+
+  /* ---------- Headline ---------- */
+  h1.headline{
+    font-size:54px;
+    line-height:1.08;
+    font-weight:800;
+    letter-spacing:-0.02em;
+    color:var(--text-0);
+    margin-bottom:24px;
+    max-width:600px;
+  }
+  h1.headline .accent{
+    background:var(--grad-brand);
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+
+  p.lead{
+    font-size:17px;
+    line-height:1.65;
+    color:var(--text-1);
+    max-width:540px;
+    margin-bottom:46px;
+  }
+
+  /* ---------- Features ---------- */
+  .features{
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:28px;
+    margin-bottom:40px;
+  }
+  .feature-icon{
+    width:38px; height:38px;
+    margin-bottom:18px;
+    color:var(--blue);
+  }
+  .feature-icon svg{ width:100%; height:100%; }
+  .feature:nth-child(2) .feature-icon{ color:var(--purple-soft); }
+  .feature:nth-child(3) .feature-icon{ color:var(--blue); }
+  .feature:nth-child(4) .feature-icon{ color:var(--purple-soft); }
+
+  .feature-title{
+    font-size:12.5px;
+    font-weight:700;
+    letter-spacing:0.07em;
+    text-transform:uppercase;
+    color:var(--text-0);
+    margin-bottom:9px;
+  }
+  .feature-desc{
+    font-size:13.5px;
+    line-height:1.55;
+    color:var(--text-2);
+  }
+
+  .divider{
+    height:1px;
+    background:var(--border);
+    margin-bottom:28px;
+  }
+
+  /* ---------- Credit row ---------- */
+  .credit-row{
+    display:flex;
+    align-items:center;
+    gap:22px;
+    margin-bottom:26px;
+    flex-wrap:wrap;
+  }
+  .credit-icon{
+    width:46px; height:46px; flex:none;
+    border:1px solid var(--border-soft);
+    border-radius:var(--radius-sm);
+    display:flex; align-items:center; justify-content:center;
+    color:#7e9bf5;
+    background:rgba(79,125,240,0.06);
+  }
+  .credit-icon svg{ width:20px; height:20px; }
+
+  .credit-text-block{ flex:none; }
+  .credit-line1{
+    font-size:14.5px; font-weight:600; color:#6f93f7;
+    margin-bottom:4px;
+  }
+  .credit-line2{
+    font-size:21px; font-weight:700; color:var(--text-0);
+  }
+
+  .credit-sep{
+    width:1px; height:42px;
+    background:var(--border-soft);
+    flex:none;
+  }
+
+  .credit-sub{
+    font-size:14px; line-height:1.6; color:var(--text-2);
+  }
+
+  /* ---------- Tech badges ---------- */
+  .tech-bar{
+    border:1px solid var(--border);
+    border-radius:18px;
+    background:rgba(255,255,255,0.015);
+    padding:18px 26px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:18px;
+    flex-wrap:wrap;
+  }
+  .tech-badge{
+    display:flex; align-items:center; gap:10px;
+  }
+  .tech-chip{
+    width:26px; height:26px; border-radius:7px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:9px; font-weight:800; color:#fff; flex:none;
+    letter-spacing:-0.02em;
+  }
+  .tech-label{ font-size:14px; font-weight:600; color:var(--text-1); white-space:nowrap; }
+  .chip-dotnet{ background:#5c2d91; }
+  .chip-signalr{ background:#2563eb; }
+  .chip-ef{ background:#7c3aed; }
+  .chip-ml{ background:#16a596; }
+  .chip-sql{ background:#e25555; }
+  .chip-gemini{ background:linear-gradient(135deg,#4f7df0,#9b5cf0); }
+
+  /* ===================== HERO VISUAL ===================== */
+  .hero-visual{
+    position:relative;
+    width:100%;
+    aspect-ratio: 660 / 640;
+    margin-top:6px;
+  }
+  .device-row{ display:contents; }
+
+  .device{
+    position:absolute;
+    filter:drop-shadow(0 30px 50px rgba(0,0,0,0.45));
+  }
+  .device.laptop{ top:0; right:0; width:90%; z-index:1; }
+  .laptop-scale-box{
+    position:relative; width:100%; aspect-ratio: 580/372; overflow:hidden;
+  }
+  .laptop-scale-inner{
+    position:absolute; top:0; left:0; width:580px; transform-origin:top left;
+  }
+  .device.phone{ left:0; bottom:4%; width:23%; z-index:2; }
+  .device.tablet{ right:2%; bottom:0; width:33%; z-index:3; }
+
+  /* ---- Laptop chrome ---- */
+  .laptop-shell{
+    background:linear-gradient(180deg,#2c2e44,#191a2c);
+    border-radius:18px 18px 7px 7px;
+    padding:13px 13px 0;
+    border:1px solid rgba(255,255,255,0.06);
+  }
+  .laptop-screen{
+    background:var(--surface);
+    border-radius:9px;
+    overflow:hidden;
+    border:1px solid var(--border);
+    aspect-ratio: 600/375;
+  }
+  .laptop-base{
+    height:13px;
+    margin-top:-1px;
+    background:linear-gradient(180deg,#23253a,#14152298);
+    border-radius:0 0 9px 9px;
+    position:relative;
+  }
+  .laptop-base::after{
+    content:"";
+    position:absolute; left:50%; top:0; transform:translateX(-50%);
+    width:14%; height:5px; background:#0c0d18; border-radius:0 0 6px 6px;
+  }
+
+  /* dashboard UI inside laptop */
+  .dash{ display:flex; height:100%; font-size:11px; }
+  .dash-side{
+    width:24%; background:var(--surface-2); border-right:1px solid var(--border);
+    padding:10px 8px; display:flex; flex-direction:column; gap:3px;
+  }
+  .dash-side-logo{ display:flex; align-items:center; gap:5px; padding:2px 4px 12px; }
+  .dash-side-logo .mini-mark{ width:14px; height:14px; }
+  .dash-side-logo span{ font-weight:700; font-size:10.5px; }
+  .dash-side-logo span .iq{ background:var(--grad-brand); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .nav-item{
+    display:flex; align-items:center; gap:7px;
+    padding:6px 7px; border-radius:6px;
+    color:var(--text-2); font-size:9.5px; font-weight:500;
+  }
+  .nav-item svg{ width:11px; height:11px; flex:none; }
+  .nav-item.active{ background:var(--blue-strong); color:#fff; }
+
+  .dash-main{ flex:1; padding:10px 12px; display:flex; flex-direction:column; gap:9px; overflow:hidden; }
+  .dash-topbar{ display:flex; align-items:center; justify-content:space-between; margin-bottom:1px; }
+  .dash-topbar h2{ font-size:12px; font-weight:700; }
+  .dash-topbar .who{ display:flex; align-items:center; gap:5px; color:var(--text-2); font-size:8.5px; }
+  .avatar-dot{ width:14px; height:14px; border-radius:50%; background:var(--grad-brand); flex:none; }
+
+  .stat-row{ display:grid; grid-template-columns:repeat(4,1fr); gap:6px; }
+  .stat-card{
+    background:var(--surface-2); border:1px solid var(--border); border-radius:7px;
+    padding:6px 7px;
+  }
+  .stat-label{ font-size:6.6px; letter-spacing:0.05em; text-transform:uppercase; color:var(--text-3); font-weight:700; margin-bottom:3px; }
+  .stat-value{ font-size:14px; font-weight:800; color:var(--text-0); line-height:1; }
+  .stat-delta{ font-size:6.6px; color:var(--text-2); margin-top:2px; }
+  .stat-delta.up{ color:var(--green); }
+
+  .dash-body{ flex:1; display:grid; grid-template-columns:1fr 100px; gap:8px; min-height:0; }
+  .queue-panel{
+    background:var(--surface-2); border:1px solid var(--border); border-radius:8px;
+    padding:8px 9px; display:flex; flex-direction:column; min-height:0;
+  }
+  .queue-panel h3{ font-size:9.5px; font-weight:700; margin-bottom:6px; }
+  .queue-table{ width:100%; border-collapse:collapse; flex:1; }
+  .queue-table th{
+    text-align:left; font-size:6.2px; letter-spacing:0.04em; text-transform:uppercase;
+    color:var(--text-3); font-weight:700; padding:2px 4px 4px; border-bottom:1px solid var(--border);
+  }
+  .queue-table td{
+    font-size:7.6px; color:var(--text-1); padding:3.4px 4px; border-bottom:1px solid rgba(255,255,255,0.04);
+  }
+  .queue-table td.tk{ color:var(--text-0); font-weight:700; }
+  .call-btn{
+    margin-top:6px; background:var(--blue-strong); border:none; border-radius:6px;
+    color:#fff; font-weight:700; font-size:8.5px; padding:6px; cursor:pointer;
+  }
+
+  .side-cards{ display:flex; flex-direction:column; gap:8px; min-height:0; }
+  .mini-card{
+    background:var(--surface-2); border:1px solid var(--border); border-radius:8px;
+    padding:8px; flex:1; display:flex; flex-direction:column;
+  }
+  .mini-card h4{ font-size:7.4px; font-weight:700; color:var(--text-1); margin-bottom:5px; }
+  .wait-big{ font-size:18px; font-weight:800; line-height:1; }
+  .wait-big span{ font-size:7.5px; font-weight:600; color:var(--text-2); margin-left:2px; }
+  .mini-sub{ font-size:6.4px; color:var(--text-3); margin-top:2px; margin-bottom:auto; }
+  .spark{ width:100%; height:18px; margin-top:3px; }
+
+  .risk-tag{ font-size:6.6px; font-weight:700; color:var(--green); margin-bottom:1px; }
+  .risk-big{ font-size:16px; font-weight:800; }
+  .risk-bar-track{ height:3px; border-radius:2px; background:rgba(255,255,255,0.08); margin-top:5px; overflow:hidden; }
+  .risk-bar-fill{ height:100%; width:84%; background:var(--green); border-radius:2px; }
+  .risk-bar-label{ font-size:5.8px; color:var(--text-3); margin-top:3px; }
+
+  /* ---- Phone chrome ---- */
+  .phone-shell{
+    background:#15172e; border:2px solid #232646; border-radius:30px;
+    padding:9px; aspect-ratio:300/610;
+  }
+  .phone-screen{
+    background:var(--surface); border-radius:22px; height:100%; padding:14px 12px;
+    display:flex; flex-direction:column; position:relative; overflow:hidden;
+  }
+  .phone-notch{
+    position:absolute; top:6px; left:50%; transform:translateX(-50%);
+    width:34%; height:7px; background:#0c0d18; border-radius:6px;
+  }
+  .phone-body{ margin-top:20px; display:flex; flex-direction:column; gap:9px; flex:1; }
+  .phone-h{ font-size:11.5px; font-weight:800; color:var(--text-0); }
+  .phone-card{ background:var(--surface-2); border:1px solid var(--border); border-radius:9px; padding:9px 10px; }
+  .phone-card .lbl{ font-size:6px; letter-spacing:0.05em; text-transform:uppercase; color:var(--text-3); font-weight:700; margin-bottom:4px; }
+  .phone-card .val{ font-size:17px; font-weight:800; color:var(--text-0); line-height:1; }
+  .phone-card .val span{ font-size:7px; font-weight:600; color:var(--text-2); margin-left:2px; }
+  .phone-card .sub{ font-size:6.2px; color:var(--text-3); margin-top:3px; }
+  .phone-notify{
+    margin-top:auto; display:flex; align-items:center; gap:6px;
+    border-top:1px solid var(--border); padding-top:9px; font-size:6.6px; color:var(--text-2);
+  }
+  .smiley{ width:16px; height:16px; flex:none; border-radius:50%; background:#1d2147; display:flex; align-items:center; justify-content:center; color:#f5c451; }
+  .smiley svg{ width:10px; height:10px; }
+
+  /* ---- Tablet chrome ---- */
+  .tablet-shell{
+    background:#15172e; border:3px solid #232646; border-radius:20px; padding:14px;
+    aspect-ratio:330/420;
+  }
+  .tablet-screen{ height:100%; display:flex; flex-direction:column; align-items:center; text-align:center; gap:7px; }
+  .tablet-logo{ display:flex; align-items:center; gap:5px; margin-bottom:2px; }
+  .tablet-logo .mini-mark{ width:13px; height:13px; }
+  .tablet-logo span{ font-size:9.5px; font-weight:700; }
+  .tablet-logo span .iq{ background:var(--grad-brand); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .tablet-h{ font-size:13px; font-weight:800; margin-top:4px; }
+  .tablet-sub{ font-size:7px; color:var(--text-2); line-height:1.4; max-width:85%; }
+  .qr-wrap{
+    background:#fff; border-radius:9px; padding:8px; margin:6px 0 2px;
+  }
+  .qr-grid{ display:grid; grid-template-columns:repeat(15,1fr); width:84px; height:84px; gap:1px; }
+  .qr-grid div{ background:#fff; }
+  .qr-grid div.on{ background:#0c0d18; }
+  .tablet-link{ font-size:7.6px; font-weight:700; color:#6f93f7; }
+  .tablet-notify{
+    margin-top:auto; display:flex; align-items:center; gap:5px; font-size:6.4px; color:var(--text-2);
+    border-top:1px solid var(--border); padding-top:8px; width:100%; justify-content:center;
+  }
+
+  /* ===================== Motion ===================== */
+  @keyframes rise{ from{ opacity:0; transform:translateY(14px); } to{ opacity:1; transform:translateY(0); } }
+  .reveal{ opacity:0; animation: rise 0.7s cubic-bezier(.2,.7,.2,1) forwards; }
+  .reveal.d1{ animation-delay:.03s; }
+  .reveal.d2{ animation-delay:.1s; }
+  .reveal.d3{ animation-delay:.18s; }
+  .reveal.d4{ animation-delay:.26s; }
+  .reveal.d5{ animation-delay:.34s; }
+  .reveal.d6{ animation-delay:.42s; }
+  .reveal.d7{ animation-delay:.5s; }
+
+  @media (prefers-reduced-motion: reduce){
+    .reveal{ animation:none !important; opacity:1 !important; transform:none !important; }
+  }
+
+  /* ===================== Responsive ===================== */
+  @media (max-width:1180px){
+    .wrap{ padding:48px 36px; }
+    h1.headline{ font-size:44px; }
+    .features{ gap:20px; }
+  }
+
+  @media (max-width:980px){
+    .hero-grid{ grid-template-columns:1fr; }
+    .hero-visual{
+      aspect-ratio:auto; height:auto;
+      display:flex; flex-direction:column; align-items:center; gap:26px;
+      max-width:480px; margin:24px auto 0;
+    }
+    .device.laptop{ position:static; width:100%; max-width:440px; }
+    .device-row{ display:flex; gap:18px; justify-content:center; flex-wrap:wrap; position:static; }
+    .device.phone{ position:static; width:150px; }
+    .device.tablet{ position:static; width:190px; }
+  }
+
+  @media (max-width:640px){
+    .wrap{ padding:36px 20px; }
+    h1.headline{ font-size:33px; }
+    .tagline{ font-size:11px; }
+    .features{ grid-template-columns:1fr 1fr; gap:24px 18px; }
+    .tech-bar{ justify-content:flex-start; }
+    .credit-row{ gap:14px; }
+  }
+
+  a{ text-decoration:none; }
+</style>
+</head>
+<body>
+
+<svg class="bg-waves" viewBox="0 0 1440 900" preserveAspectRatio="xMaxYMax slice" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="waveGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#4f7df0"/>
+      <stop offset="100%" stop-color="#9b5cf0"/>
+    </linearGradient>
+  </defs>
+  <g stroke="url(#waveGrad)" stroke-width="1" fill="none" opacity="0.5">
+    <path d="M900 760 C 1050 700, 1150 820, 1300 740 S 1500 700, 1600 760"/>
+    <path d="M870 800 C 1020 740, 1120 860, 1270 780 S 1470 740, 1570 800"/>
+    <path d="M840 840 C 990 780, 1090 900, 1240 820 S 1440 780, 1540 840"/>
+    <path d="M950 700 C 1100 640, 1200 760, 1350 680 S 1550 640, 1650 700"/>
+  </g>
+</svg>
+
+<main>
+  <div class="wrap">
+    <div class="hero-grid">
+
+      <!-- ===== LEFT CONTENT ===== -->
+      <div class="hero-content">
+
+        <div class="logo reveal d1">
+          <svg class="logo-mark" viewBox="0 0 52 52" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="qgrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#4f7df0"/>
+                <stop offset="100%" stop-color="#9b5cf0"/>
+              </linearGradient>
+            </defs>
+            <circle cx="26" cy="26" r="22" fill="none" stroke="url(#qgrad)" stroke-width="7"/>
+            <line x1="35" y1="35" x2="44" y2="44" stroke="url(#qgrad)" stroke-width="7" stroke-linecap="round"/>
+          </svg>
+          <div class="logo-word">Queue<span class="iq">IQ</span></div>
+        </div>
+
+        <p class="tagline reveal d2">
+          <span class="t1">Smarter queues.</span>
+          <span class="t2">Happier customers.</span>
+          <span class="t3">Better business.</span>
+        </p>
+
+        <h1 class="headline reveal d3">The intelligent way to manage every <span class="accent">walk-in.</span></h1>
+
+        <p class="lead reveal d4">QueueIQ is a real-time queue and walk-in management system powered by ML.NET and AI, built for businesses that value time, data, and exceptional customer experiences.</p>
+
+        <div class="features reveal d5">
+          <div class="feature">
+            <div class="feature-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="2.6"/>
+                <path d="M7.5 7.5a6.4 6.4 0 0 0 0 9"/>
+                <path d="M16.5 7.5a6.4 6.4 0 0 1 0 9"/>
+                <path d="M4.3 4.3a11 11 0 0 0 0 15.4"/>
+                <path d="M19.7 4.3a11 11 0 0 1 0 15.4"/>
+              </svg>
+            </div>
+            <div class="feature-title">Real-Time Updates</div>
+            <div class="feature-desc">Live queue sync with instant notifications.</div>
+          </div>
+          <div class="feature">
+            <div class="feature-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 4.5a3 3 0 0 0-3 3v.3A3 3 0 0 0 4.5 11v1a3 3 0 0 0 1.6 2.66A3 3 0 0 0 9 19.5h1.5v-15z"/>
+                <path d="M15 4.5a3 3 0 0 1 3 3v.3A3 3 0 0 1 19.5 11v1a3 3 0 0 1-1.6 2.66A3 3 0 0 1 15 19.5h-1.5v-15z"/>
+                <circle cx="9" cy="9" r=".6" fill="currentColor"/>
+                <circle cx="15" cy="13" r=".6" fill="currentColor"/>
+                <circle cx="9" cy="15" r=".6" fill="currentColor"/>
+              </svg>
+            </div>
+            <div class="feature-title">AI-Powered Insights</div>
+            <div class="feature-desc">ML.NET predictions for smarter wait time &amp; no-show risk.</div>
+          </div>
+          <div class="feature">
+            <div class="feature-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 5.5h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H9l-4 3.6V16.5H4a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1z"/>
+                <circle cx="9" cy="11" r=".7" fill="currentColor" stroke="none"/>
+                <circle cx="12" cy="11" r=".7" fill="currentColor" stroke="none"/>
+                <circle cx="15" cy="11" r=".7" fill="currentColor" stroke="none"/>
+              </svg>
+            </div>
+            <div class="feature-title">AI Concierge</div>
+            <div class="feature-desc">Gemini-powered assistant to support your customers 24/7.</div>
+          </div>
+          <div class="feature">
+            <div class="feature-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 20V9"/>
+                <path d="M11 20V4"/>
+                <path d="M18 20v-7"/>
+                <path d="M3 20h18"/>
+              </svg>
+            </div>
+            <div class="feature-title">Actionable Analytics</div>
+            <div class="feature-desc">Understand performance, optimize staff, and improve service.</div>
+          </div>
+        </div>
+
+        <div class="divider reveal d6"></div>
+
+        <div class="credit-row reveal d6">
+          <div class="credit-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 4 12 9 6"/>
+              <polyline points="15 6 20 12 15 18"/>
+            </svg>
+          </div>
+          <div class="credit-text-block">
+            <div class="credit-line1">Designed. Developed. Deployed.</div>
+            <div class="credit-line2">Joseph Bacroya</div>
+          </div>
+          <div class="credit-sep"></div>
+          <div class="credit-sub">Built with modern technologies.<br>Focused on real-world impact.</div>
+        </div>
+
+        <div class="tech-bar reveal d7">
+          <div class="tech-badge"><div class="tech-chip chip-dotnet">.NET</div><div class="tech-label">ASP.NET Core</div></div>
+          <div class="tech-badge"><div class="tech-chip chip-signalr">R</div><div class="tech-label">SignalR</div></div>
+          <div class="tech-badge"><div class="tech-chip chip-ef">EF</div><div class="tech-label">EF Core</div></div>
+          <div class="tech-badge"><div class="tech-chip chip-ml">ML</div><div class="tech-label">ML.NET</div></div>
+          <div class="tech-badge"><div class="tech-chip chip-sql">DB</div><div class="tech-label">SQL Server</div></div>
+          <div class="tech-badge"><div class="tech-chip chip-gemini">✦</div><div class="tech-label">Gemini API</div></div>
+        </div>
+
+      </div>
+
+      <!-- ===== RIGHT VISUAL ===== -->
+      <div class="hero-visual reveal d4">
+
+        <div class="device laptop">
+          <div class="laptop-scale-box" id="laptopScaleBox">
+          <div class="laptop-scale-inner">
+          <div class="laptop-shell">
+            <div class="laptop-screen">
+              <div class="dash">
+                <div class="dash-side">
+                  <div class="dash-side-logo">
+                    <svg class="mini-mark" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="url(#qgrad)" stroke-width="3.2"/><line x1="17" y1="17" x2="21" y2="21" stroke="url(#qgrad)" stroke-width="3.2" stroke-linecap="round"/></svg>
+                    <span>Queue<span class="iq">IQ</span></span>
+                  </div>
+                  <div class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</div>
+                  <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18"/></svg>Tickets</div>
+                  <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>Services</div>
+                  <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10"/><path d="M11 20V4"/><path d="M18 20v-7"/></svg>Analytics</div>
+                  <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3 2.5-5 6-5s6 2 6 5"/><circle cx="17" cy="9" r="2.4"/><path d="M21 19.5c0-2.2-1.6-3.7-3.7-4"/></svg>Customers</div>
+                  <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.2-1.6l2-1.4-1.6-2.7-2.3.8a7 7 0 0 0-2.7-1.6L13.8 3h-3.2l-.4 2.5a7 7 0 0 0-2.7 1.6l-2.3-.8L3.6 9l2 1.4A7 7 0 0 0 5.4 12c0 .5 0 1.1.2 1.6l-2 1.4 1.6 2.7 2.3-.8a7 7 0 0 0 2.7 1.6l.4 2.5h3.2l.4-2.5a7 7 0 0 0 2.7-1.6l2.3.8 1.6-2.7-2-1.4c.1-.5.2-1 .2-1.6z"/></svg>Settings</div>
+                </div>
+                <div class="dash-main">
+                  <div class="dash-topbar">
+                    <h2>Dashboard</h2>
+                    <div class="who">Barbershop Co. <div class="avatar-dot"></div></div>
+                  </div>
+                  <div class="stat-row">
+                    <div class="stat-card"><div class="stat-label">Waiting</div><div class="stat-value">24</div><div class="stat-delta up">+4 from last hour</div></div>
+                    <div class="stat-card"><div class="stat-label">In Service</div><div class="stat-value">3</div><div class="stat-delta up">+1 from last hour</div></div>
+                    <div class="stat-card"><div class="stat-label">Completed</div><div class="stat-value">38</div><div class="stat-delta up">+12 from last hour</div></div>
+                    <div class="stat-card"><div class="stat-label">Avg. Wait Time</div><div class="stat-value">18 mins</div><div class="stat-delta">-5 mins from yesterday</div></div>
+                  </div>
+                  <div class="dash-body">
+                    <div class="queue-panel">
+                      <h3>Live Queue</h3>
+                      <table class="queue-table">
+                        <thead><tr><th>Ticket</th><th>Customer</th><th>Service</th><th>Est. Wait</th></tr></thead>
+                        <tbody>
+                          <tr><td class="tk">A024</td><td>Customer A</td><td>Haircut</td><td>18 min</td></tr>
+                          <tr><td class="tk">A023</td><td>Customer B</td><td>Beard Trim</td><td>25 min</td></tr>
+                          <tr><td class="tk">A022</td><td>Customer C</td><td>Haircut</td><td>32 min</td></tr>
+                          <tr><td class="tk">A021</td><td>Customer D</td><td>Hair Color</td><td>45 min</td></tr>
+                          <tr><td class="tk">A020</td><td>Customer E</td><td>Haircut</td><td>52 min</td></tr>
+                        </tbody>
+                      </table>
+                      <button class="call-btn">Call Next</button>
+                    </div>
+                    <div class="side-cards">
+                      <div class="mini-card">
+                        <h4>Estimated Wait Time</h4>
+                        <div class="wait-big">18<span>minutes</span></div>
+                        <div class="mini-sub">For your service</div>
+                        <svg class="spark" viewBox="0 0 100 20" preserveAspectRatio="none"><polyline points="0,14 12,9 24,15 36,7 48,12 60,5 72,11 84,6 100,9" fill="none" stroke="#4f7df0" stroke-width="1.6"/></svg>
+                      </div>
+                      <div class="mini-card">
+                        <h4>No-Show Risk</h4>
+                        <div class="risk-tag">Low Risk</div>
+                        <div class="risk-big">12%</div>
+                        <div class="risk-bar-track"><div class="risk-bar-fill"></div></div>
+                        <div class="risk-bar-label">Confidence Score</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="laptop-base"></div>
+          </div>
+          </div>
+          </div>
+        </div>
+
+        <div class="device-row">
+          <div class="device phone">
+            <div class="phone-shell">
+              <div class="phone-screen">
+                <div class="phone-notch"></div>
+                <div class="phone-body">
+                  <div class="phone-h">You're in line!</div>
+                  <div class="phone-card">
+                    <div class="lbl">Est. wait time</div>
+                    <div class="val">18<span>minutes</span></div>
+                  </div>
+                  <div class="phone-card">
+                    <div class="lbl">Your position</div>
+                    <div class="val" style="font-size:15px;">A024</div>
+                    <div class="sub">4 people ahead of you</div>
+                  </div>
+                  <div class="phone-notify">
+                    <div class="smiley"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="9" cy="9" r=".6" fill="currentColor"/><circle cx="15" cy="9" r=".6" fill="currentColor"/><path d="M8 14c1 1.2 2.4 1.8 4 1.8s3-.6 4-1.8"/></svg></div>
+                    We'll notify you when it's your turn.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="device tablet">
+            <div class="tablet-shell">
+              <div class="tablet-screen">
+                <div class="tablet-logo">
+                  <svg class="mini-mark" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="url(#qgrad)" stroke-width="3.2"/><line x1="17" y1="17" x2="21" y2="21" stroke="url(#qgrad)" stroke-width="3.2" stroke-linecap="round"/></svg>
+                  <span>Queue<span class="iq">IQ</span></span>
+                </div>
+                <div class="tablet-h">Join the Queue</div>
+                <div class="tablet-sub">Scan the QR code or visit the link below</div>
+                <div class="qr-wrap"><div class="qr-grid" id="qrgrid"></div></div>
+                <div class="tablet-link">queueiq.com/join/QB7X</div>
+                <div class="tablet-notify">
+                  <div class="smiley"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="9" cy="9" r=".6" fill="currentColor"/><circle cx="15" cy="9" r=".6" fill="currentColor"/><path d="M8 14c1 1.2 2.4 1.8 4 1.8s3-.6 4-1.8"/></svg></div>
+                  Thank you! We'll notify you when it's your turn.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<script>
+  // Scale the laptop mockup content proportionally so dense dashboard
+  // content never reflows or clips at smaller widths — pure visual zoom.
+  (function(){
+    var box = document.getElementById('laptopScaleBox');
+    var inner = box.querySelector('.laptop-scale-inner');
+    var REF_WIDTH = 580;
+    function applyScale(){
+      var w = box.getBoundingClientRect().width;
+      if (!w) return;
+      var scale = w / REF_WIDTH;
+      inner.style.transform = 'scale(' + scale + ')';
+    }
+    if (window.ResizeObserver){
+      new ResizeObserver(applyScale).observe(box);
+    } else {
+      window.addEventListener('resize', applyScale);
+    }
+    applyScale();
+  })();
+
+  // Deterministic decorative QR-style pattern (visual only, not a functional code)
+  (function(){
+    var grid = document.getElementById('qrgrid');
+    var n = 15;
+    var seed = 42;
+    function rand(){ seed = (seed * 9301 + 49297) % 233280; return seed / 233280; }
+    function isFinder(r,c){
+      var corners = [[0,0],[0,n-7],[n-7,0]];
+      for (var i=0;i<corners.length;i++){
+        var fr = corners[i][0], fc = corners[i][1];
+        if (r>=fr && r<fr+7 && c>=fc && c<fc+7){
+          var lr = r-fr, lc = c-fc;
+          var border = (lr===0||lr===6||lc===0||lc===6);
+          var core = (lr>=2&&lr<=4&&lc>=2&&lc<=4);
+          return border || core;
+        }
+      }
+      return null;
+    }
+    for (var r=0;r<n;r++){
+      for (var c=0;c<n;c++){
+        var cell = document.createElement('div');
+        var f = isFinder(r,c);
+        var on = (f !== null) ? f : (rand() > 0.56);
+        if (on) cell.className = 'on';
+        grid.appendChild(cell);
+      }
+    }
+  })();
+</script>
+
+</body>
+</html>

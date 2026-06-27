@@ -1,0 +1,248 @@
+@page "/staff/{Slug}"
+@rendermode InteractiveServer
+@using QueueIQ.Shared.DTOs
+@using QueueIQ.Shared.Enums
+@using QueueIQ.Web.Services
+@implements IAsyncDisposable
+@inject QueueHubService HubService
+@inject IHttpClientFactory ClientFactory
+
+<PageTitle>QueueIQ Staff Dashboard</PageTitle>
+
+<div class="container mt-4 pb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex align-items-center gap-3">
+            <svg viewBox="0 0 52 52" style="width:42px; height:42px;">
+                <defs>
+                    <linearGradient id="qgrad2" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stop-color="#4f7df0"/>
+                        <stop offset="100%" stop-color="#9b5cf0"/>
+                    </linearGradient>
+                </defs>
+                <circle cx="26" cy="26" r="22" fill="none" stroke="url(#qgrad2)" stroke-width="7"/>
+                <line x1="35" y1="35" x2="44" y2="44" stroke="url(#qgrad2)" stroke-width="7" stroke-linecap="round"/>
+            </svg>
+            <div>
+                <h2 class="mb-0 fw-bold font-space text-gradient">Staff Dashboard</h2>
+                <p class="text-muted mb-0">Live Queue for @Slug</p>
+            </div>
+        </div>
+        <button class="btn-apple-primary font-space" @onclick="CallNextAsync" disabled="@(!HasWaitingCustomers)">
+            Call Next Customer
+        </button>
+    </div>
+
+    @if (_errorMessage is not null)
+    {
+        <div class="alert alert-danger shadow-sm border-0" role="alert" style="background-color: var(--surface-3); color: var(--red); border: 1px solid var(--red) !important;">
+            @_errorMessage
+        </div>
+    }
+
+    <div class="row g-4">
+        <!-- Waiting Column -->
+        <div class="col-md-4">
+            <div class="glass-card h-100">
+                <div class="glass-card-header d-flex justify-content-between align-items-center">
+                    <span>Waiting</span>
+                    <span class="badge-apple rounded-pill">@WaitingTickets.Count()</span>
+                </div>
+                
+                <ul class="ios-list">
+                    @foreach (var ticket in WaitingTickets)
+                    {
+                        var isHighRisk = ticket.NoShowRiskScore > 0.30;
+                        <li class="ios-list-item queue-item-enter @(isHighRisk ? "risk-high" : "")" @key="ticket.Id">
+                            <div class="d-flex justify-content-between align-items-start mb-1">
+                                <strong class="fs-5 font-space text-gradient">@ticket.CustomerToken</strong>
+                                <span class="badge-apple">@ticket.ServiceTypeName</span>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between mt-2 align-items-end">
+                                <div>
+                                    <div class="small text-muted fw-semibold" style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em;">Est. Wait</div>
+                                    <div class="fs-4 fw-bold font-space">
+                                        @ticket.PredictedWaitMinutes?.ToString("F0") <span class="fs-6 text-muted fw-normal">min</span>
+                                    </div>
+                                </div>
+                                @if (ticket.NoShowRiskScore.HasValue)
+                                {
+                                    <div class="text-end">
+                                        <div class="small text-muted fw-semibold" style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em;">No-Show Risk</div>
+                                        <div class="small fw-bold" style="color: @(isHighRisk ? "var(--red)" : "var(--green)")">
+                                            @ticket.NoShowRiskScore.Value.ToString("P0")
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </li>
+                    }
+                    @if (!WaitingTickets.Any())
+                    {
+                        <li class="ios-list-item text-muted text-center py-5 border-0" style="background:transparent;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" stroke-width="1.5" style="width:48px;height:48px;margin-bottom:1rem;">
+                                <circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>
+                            </svg>
+                            <p>Queue is empty.<br>Enjoy the quiet!</p>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+
+        <!-- Called Column -->
+        <div class="col-md-4">
+            <div class="glass-card h-100" style="border-top: 3px solid var(--purple-soft);">
+                <div class="glass-card-header d-flex justify-content-between align-items-center">
+                    <span>Called</span>
+                    <span class="badge-apple rounded-pill">@CalledTickets.Count()</span>
+                </div>
+                
+                <ul class="ios-list">
+                    @foreach (var ticket in CalledTickets)
+                    {
+                        <li class="ios-list-item queue-item-enter bg-light" @key="ticket.Id">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <strong class="fs-5 font-space text-gradient">@ticket.CustomerToken</strong>
+                                <span class="badge-apple">@ticket.ServiceTypeName</span>
+                            </div>
+                            
+                            <button class="btn-apple-primary w-100 rounded-pill font-space" @onclick="() => UpdateStatusAsync(ticket.Id, TicketStatus.InService)">
+                                Start Service
+                            </button>
+                        </li>
+                    }
+                    @if (!CalledTickets.Any())
+                    {
+                        <li class="ios-list-item text-muted text-center py-4 border-0" style="background:transparent;">
+                            Nobody heading to counter
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+
+        <!-- In Service Column -->
+        <div class="col-md-4">
+            <div class="glass-card h-100" style="border-top: 3px solid var(--blue-strong);">
+                <div class="glass-card-header d-flex justify-content-between align-items-center">
+                    <span>In Service</span>
+                    <span class="badge-apple rounded-pill">@InServiceTickets.Count()</span>
+                </div>
+                
+                <ul class="ios-list">
+                    @foreach (var ticket in InServiceTickets)
+                    {
+                        <li class="ios-list-item queue-item-enter" @key="ticket.Id">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <strong class="fs-5 font-space text-gradient">@ticket.CustomerToken</strong>
+                                <span class="badge-apple">@ticket.ServiceTypeName</span>
+                            </div>
+                            
+                            <button class="btn-apple-primary w-100 rounded-pill font-space" @onclick="() => UpdateStatusAsync(ticket.Id, TicketStatus.Done)">
+                                Mark Done
+                            </button>
+                        </li>
+                    }
+                    @if (!InServiceTickets.Any())
+                    {
+                        <li class="ios-list-item text-muted text-center py-4 border-0" style="background:transparent;">
+                            Counter is empty
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string Slug { get; set; } = string.Empty;
+
+    private List<TicketDto> _queue = new();
+    private string? _errorMessage;
+    private HttpClient _api = default!;
+
+    private IEnumerable<TicketDto> WaitingTickets => _queue.Where(t => t.Status == TicketStatus.Waiting);
+    private IEnumerable<TicketDto> CalledTickets => _queue.Where(t => t.Status == TicketStatus.Called);
+    private IEnumerable<TicketDto> InServiceTickets => _queue.Where(t => t.Status == TicketStatus.InService);
+    private bool HasWaitingCustomers => WaitingTickets.Any();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _api = ClientFactory.CreateClient("ApiClient");
+        HubService.OnQueueUpdated += HandleQueueUpdated;
+        await LoadQueueAsync();
+        await HubService.StartAsync(Slug);
+    }
+
+    private async Task LoadQueueAsync()
+    {
+        try
+        {
+            var response = await _api.GetAsync($"/api/businesses/{Slug}/queue");
+            if (response.IsSuccessStatusCode)
+            {
+                _queue = await response.Content.ReadFromJsonAsync<List<TicketDto>>() ?? new();
+                _errorMessage = null;
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Could not load queue: {ex.Message}";
+        }
+    }
+
+    private void HandleQueueUpdated(IEnumerable<TicketDto> newQueue)
+    {
+        _queue = newQueue.ToList();
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task CallNextAsync()
+    {
+        try
+        {
+            var response = await _api.PostAsync($"/api/businesses/{Slug}/queue/call-next", null);
+            if (!response.IsSuccessStatusCode)
+            {
+                _errorMessage = "Failed to call next customer.";
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+    }
+
+    private async Task UpdateStatusAsync(Guid ticketId, TicketStatus newStatus)
+    {
+        _errorMessage = null;
+        try
+        {
+            var response = await _api.PatchAsJsonAsync($"/api/queue/tickets/{ticketId}/status", new UpdateTicketStatusDto(newStatus));
+            if (!response.IsSuccessStatusCode)
+            {
+                if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
+                {
+                    _errorMessage = "This ticket was modified by another staff member. The dashboard will update shortly.";
+                }
+                else
+                {
+                    _errorMessage = "Failed to update ticket status.";
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        HubService.OnQueueUpdated -= HandleQueueUpdated;
+        await HubService.DisposeAsync();
+    }
+}

@@ -1,0 +1,29 @@
+# Build outputs
+bin/
+obj/
+
+# IDE files
+.vs/
+.vscode/
+*.user
+*.suo
+
+# Secrets — NEVER commit these
+appsettings.Production.json
+
+# SQLite database files
+*.db
+*.db-shm
+*.db-wal
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# NuGet
+*.nupkg
+packages/
+
+# ML.NET model artifacts (generated, not source)
+*.zip
+!*.zip # Uncomment when you want to track model.zip in Phase 5
