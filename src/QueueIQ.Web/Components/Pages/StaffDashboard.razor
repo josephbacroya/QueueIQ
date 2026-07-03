@@ -172,7 +172,8 @@
     protected override async Task OnInitializedAsync()
     {
         _api = ClientFactory.CreateClient("ApiClient");
-        HubService.OnQueueUpdated += HandleQueueUpdated;
+        HubService.OnTicketAdded += HandleTicketAdded;
+        HubService.OnTicketUpdated += HandleTicketUpdated;
         await LoadQueueAsync();
         await HubService.StartAsync(Slug);
     }
@@ -194,9 +195,20 @@
         }
     }
 
-    private void HandleQueueUpdated(IEnumerable<TicketDto> newQueue)
+    private void HandleTicketAdded(TicketDto ticket)
     {
-        _queue = newQueue.ToList();
+        _queue.Add(ticket);
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void HandleTicketUpdated(TicketDto ticket)
+    {
+        var existing = _queue.FirstOrDefault(t => t.Id == ticket.Id);
+        if (existing is not null)
+        {
+            _queue.Remove(existing);
+        }
+        _queue.Add(ticket);
         InvokeAsync(StateHasChanged);
     }
 
@@ -242,7 +254,8 @@
 
     public async ValueTask DisposeAsync()
     {
-        HubService.OnQueueUpdated -= HandleQueueUpdated;
+        HubService.OnTicketAdded -= HandleTicketAdded;
+        HubService.OnTicketUpdated -= HandleTicketUpdated;
         await HubService.DisposeAsync();
     }
 }

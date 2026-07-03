@@ -21,6 +21,9 @@ public interface IQueueNotificationService
     /// </summary>
     Task NotifyQueueUpdatedAsync(Guid businessId);
 
+    Task NotifyTicketAddedAsync(TicketDto ticket);
+    Task NotifyTicketUpdatedAsync(TicketDto ticket);
+
     /// <summary>
     /// Broadcasts a specific "ticket called" event to the business group.
     /// </summary>

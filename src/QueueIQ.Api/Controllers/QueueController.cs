@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using QueueIQ.Shared.DTOs;
 using QueueIQ.Shared.Interfaces;
 
@@ -28,6 +29,7 @@ public class QueueController : ControllerBase
 
     /// <summary>Join the queue — called by customers via QR code/link.</summary>
     [HttpPost("businesses/{slug}/queue")]
+    [EnableRateLimiting("QueueJoinLimiter")]
     [ProducesResponseType(typeof(TicketDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> JoinQueue(string slug, [FromBody] CreateTicketDto dto)
@@ -86,5 +88,18 @@ public class QueueController : ControllerBase
     {
         var position = await _queueService.GetPositionAsync(ticketId);
         return position is null ? NotFound() : Ok(position);
+    }
+
+    /// <summary>Get a customer's active ticket by their token to resume sessions.</summary>
+    [HttpGet("businesses/{slug}/queue/active-ticket")]
+    [ProducesResponseType(typeof(TicketDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetActiveTicketByToken(string slug, [FromQuery] string token)
+    {
+        var business = await _businessService.GetBySlugAsync(slug);
+        if (business is null) return NotFound();
+
+        var ticket = await _queueService.GetActiveTicketByTokenAsync(business.Id, token);
+        return ticket is null ? NotFound() : Ok(ticket);
     }
 }

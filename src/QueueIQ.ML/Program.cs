@@ -88,8 +88,10 @@ Console.WriteLine($"   MAE:   {waitTimeMetrics.MeanAbsoluteError:F2} minutes");
 Console.WriteLine($"   R²:    {waitTimeMetrics.RSquared:F4}");
 Console.WriteLine();
 
-// Save
-mlContext.Model.Save(waitTimeModel, split.TrainSet.Schema, waitTimeModelPath);
+// Save atomically
+var waitTimeTmpPath = waitTimeModelPath + ".tmp";
+mlContext.Model.Save(waitTimeModel, split.TrainSet.Schema, waitTimeTmpPath);
+File.Move(waitTimeTmpPath, waitTimeModelPath, overwrite: true);
 Console.WriteLine($"💾 Wait Time model saved to: {Path.GetFullPath(waitTimeModelPath)}");
 Console.WriteLine();
 
@@ -129,8 +131,10 @@ Console.WriteLine($"   Precision: {noShowMetrics.PositiveRecall:F4}");
 Console.WriteLine($"   Recall:    {noShowMetrics.PositivePrecision:F4}");
 Console.WriteLine();
 
-// Save
-mlContext.Model.Save(noShowModel, split.TrainSet.Schema, noShowModelPath);
+// Save atomically
+var noShowTmpPath = noShowModelPath + ".tmp";
+mlContext.Model.Save(noShowModel, split.TrainSet.Schema, noShowTmpPath);
+File.Move(noShowTmpPath, noShowModelPath, overwrite: true);
 Console.WriteLine($"💾 No-Show model saved to: {Path.GetFullPath(noShowModelPath)}");
 Console.WriteLine();
 

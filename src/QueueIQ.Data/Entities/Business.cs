@@ -11,6 +11,7 @@ public class Business
     public string Name { get; set; } = string.Empty;
     public string Slug { get; set; } = string.Empty;
     public string OwnerId { get; set; } = string.Empty; // FK → AspNetUsers (Identity, Phase later)
+    public string TimeZoneId { get; set; } = "UTC";
     public DateTime CreatedAt { get; set; }
 
     // Navigation properties

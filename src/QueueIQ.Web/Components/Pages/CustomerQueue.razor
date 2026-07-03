@@ -104,7 +104,8 @@
     protected override async Task OnInitializedAsync()
     {
         _api = ClientFactory.CreateClient("ApiClient");
-        HubService.OnQueueUpdated += HandleQueueUpdated;
+        HubService.OnTicketUpdated += HandleTicketUpdated;
+        HubService.OnTicketAdded += HandleTicketAdded;
         
         await LoadPositionAsync();
         await HubService.StartAsync(Slug);
@@ -133,33 +134,45 @@
         }
     }
 
-    private async void HandleQueueUpdated(IEnumerable<TicketDto> queue)
+    private async void HandleTicketUpdated(TicketDto ticket)
     {
-        var myTicket = queue.FirstOrDefault(t => t.Id == TicketId);
-        
-        if (myTicket is not null)
+        if (ticket.Id == TicketId)
         {
             _position = new QueuePositionDto(
-                myTicket.Id,
-                myTicket.Position,
-                myTicket.Status,
-                myTicket.PredictedWaitMinutes,
-                myTicket.ServiceTypeName
+                ticket.Id,
+                ticket.Position, // Note: Position might be outdated in TicketDto unless server recalculates it.
+                ticket.Status,
+                ticket.PredictedWaitMinutes,
+                ticket.ServiceTypeName
             );
-            await InvokeAsync(StateHasChanged);
+            
+            // To ensure position is accurate, reload it explicitly for the affected user
+            await InvokeAsync(async () => {
+                await LoadPositionAsync();
+                StateHasChanged();
+            });
         }
         else
         {
+            // Another ticket changed (e.g. called), which might improve our position
             await InvokeAsync(async () => {
+                // Add tiny random jitter to prevent all waiting clients from hitting API at exact same ms
+                await Task.Delay(Random.Shared.Next(50, 300));
                 await LoadPositionAsync();
                 StateHasChanged();
             });
         }
     }
 
+    private async void HandleTicketAdded(TicketDto ticket)
+    {
+        // Someone joined behind us, shouldn't affect our position, but we could refresh just in case
+    }
+
     public async ValueTask DisposeAsync()
     {
-        HubService.OnQueueUpdated -= HandleQueueUpdated;
+        HubService.OnTicketUpdated -= HandleTicketUpdated;
+        HubService.OnTicketAdded -= HandleTicketAdded;
         await HubService.DisposeAsync();
     }
 }

@@ -8,6 +8,8 @@ using Microsoft.Extensions.ML;
 using QueueIQ.Api.Models;
 using Serilog;
 using Serilog.Formatting.Compact;
+using Microsoft.AspNetCore.RateLimiting;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -58,6 +60,21 @@ builder.Services.AddControllers()
 
 builder.Services.AddOpenApi();
 
+// ─── Rate Limiting ───────────────────────────────────────────────────────────
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddPolicy("QueueJoinLimiter", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: partition => new FixedWindowRateLimiterOptions
+            {
+                AutoReplenishment = true,
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(1)
+            }));
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+});
+
 // ─── CORS ────────────────────────────────────────────────────────────────────
 // Allow Blazor Server (different port) to call the API during development
 builder.Services.AddCors(options =>
@@ -93,6 +110,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors("AllowBlazor");
+app.UseRateLimiter();
 app.UseAuthorization();
 app.MapControllers();
 app.MapHub<QueueHub>("/hubs/queue");

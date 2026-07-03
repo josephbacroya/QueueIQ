@@ -9,5 +9,6 @@ public interface IPredictionService
         string serviceTypeName,
         double avgServiceDurationMins,
         int queueLength,
-        int staffOnDuty);
+        int staffOnDuty,
+        string timeZoneId);
 }

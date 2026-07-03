@@ -88,7 +88,8 @@ public class QueueService : IQueueService
             serviceType.Name,
             serviceType.AvgDurationMinutes,
             position - 1, // Queue length BEFORE this ticket joined
-            staffOnDuty);
+            staffOnDuty,
+            business.TimeZoneId);
             
         ticket.PredictedWaitMinutes = predictions.PredictedWaitMinutes;
         ticket.NoShowRiskScore = predictions.NoShowRiskScore;
@@ -100,59 +101,53 @@ public class QueueService : IQueueService
             "Ticket {TicketId} created for business {BusinessId}, service '{ServiceName}'. Wait: {Wait:F1}m, Risk: {Risk:P1}",
             ticket.Id, businessId, serviceType.Name, ticket.PredictedWaitMinutes, ticket.NoShowRiskScore);
         
-        // Notify clients that the queue has updated
-        await _notificationService.NotifyQueueUpdatedAsync(businessId);
+        // Notify clients that a ticket was added
+        var dto = MapToDto(ticket, serviceType.Name, position);
+        await _notificationService.NotifyTicketAddedAsync(dto);
 
-        return MapToDto(ticket, serviceType.Name, position);
+        return dto;
     }
 
     public async Task<TicketDto?> CallNextAsync(Guid businessId)
     {
-        int maxRetries = 3;
-        for (int i = 0; i < maxRetries; i++)
+        // Get the oldest Waiting ticket for this business
+        var nextTicket = await _db.Tickets
+            .Include(t => t.ServiceType)
+            .Where(t => t.BusinessId == businessId && t.Status == TicketStatus.Waiting)
+            .OrderBy(t => t.JoinedAt)
+            .ThenBy(t => t.Id)
+            .FirstOrDefaultAsync();
+
+        if (nextTicket is null)
         {
-            // Get the oldest Waiting ticket for this business
-            var nextTicket = await _db.Tickets
-                .Include(t => t.ServiceType)
-                .Where(t => t.BusinessId == businessId && t.Status == TicketStatus.Waiting)
-                .OrderBy(t => t.JoinedAt)
-                .FirstOrDefaultAsync();
-
-            if (nextTicket is null)
-            {
-                return null; // No one waiting
-            }
-
-            nextTicket.Status = TicketStatus.Called;
-            nextTicket.CalledAt = DateTime.UtcNow;
-            nextTicket.RowVersion = Guid.NewGuid().ToByteArray(); // Manually bump RowVersion for concurrency
-
-            try
-            {
-                await _db.SaveChangesAsync();
-
-                _logger.LogInformation(
-                    "Ticket {TicketId} called for business {BusinessId}", nextTicket.Id, businessId);
-
-                var dto = MapToDto(nextTicket, nextTicket.ServiceType.Name, 0);
-
-                // Notify that a specific ticket was called, then update the full queue
-                await _notificationService.NotifyTicketCalledAsync(dto);
-                await _notificationService.NotifyQueueUpdatedAsync(businessId);
-
-                return dto;
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                // The ticket was grabbed by someone else (high contention).
-                // Discard tracked changes and try again to get the next person in line.
-                _db.Entry(nextTicket).State = EntityState.Detached;
-                _logger.LogWarning("Concurrency conflict calling next ticket for business {BusinessId}. Retrying...", businessId);
-                continue;
-            }
+            return null; // No one waiting
         }
 
-        throw new ConcurrencyConflictException("Failed to call next customer after multiple attempts due to high contention.");
+        nextTicket.Status = TicketStatus.Called;
+        nextTicket.CalledAt = DateTime.UtcNow;
+        nextTicket.RowVersion = Guid.NewGuid().ToByteArray(); // Manually bump RowVersion for concurrency
+
+        try
+        {
+            await _db.SaveChangesAsync();
+
+            _logger.LogInformation(
+                "Ticket {TicketId} called for business {BusinessId}", nextTicket.Id, businessId);
+
+            var dto = MapToDto(nextTicket, nextTicket.ServiceType.Name, 0);
+
+            // Notify that a specific ticket was called and updated
+            await _notificationService.NotifyTicketCalledAsync(dto);
+            await _notificationService.NotifyTicketUpdatedAsync(dto);
+
+            return dto;
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            // The ticket was grabbed by someone else (e.g. double click or concurrent staff).
+            // Fail fast rather than auto-retrying to prevent accidental double-pops.
+            throw new ConcurrencyConflictException("Failed to call next customer due to concurrency. Please try again.");
+        }
     }
 
     public async Task<TicketDto> UpdateTicketStatusAsync(Guid ticketId, UpdateTicketStatusDto dto)
@@ -200,9 +195,10 @@ public class QueueService : IQueueService
 
         var position = await CalculatePositionAsync(ticket);
         
-        await _notificationService.NotifyQueueUpdatedAsync(ticket.BusinessId);
+        var dto = MapToDto(ticket, ticket.ServiceType.Name, position);
+        await _notificationService.NotifyTicketUpdatedAsync(dto);
 
-        return MapToDto(ticket, ticket.ServiceType.Name, position);
+        return dto;
     }
 
     public async Task<IEnumerable<TicketDto>> GetQueueAsync(Guid businessId)
@@ -267,7 +263,23 @@ public class QueueService : IQueueService
             .CountAsync(t =>
                 t.BusinessId == ticket.BusinessId &&
                 t.Status == TicketStatus.Waiting &&
-                t.JoinedAt < ticket.JoinedAt) + 1;
+                (t.JoinedAt < ticket.JoinedAt || (t.JoinedAt == ticket.JoinedAt && string.Compare(t.Id.ToString(), ticket.Id.ToString()) < 0))) + 1;
+    }
+
+    public async Task<TicketDto?> GetActiveTicketByTokenAsync(Guid businessId, string token)
+    {
+        var activeStatuses = new[] { TicketStatus.Waiting, TicketStatus.Called, TicketStatus.InService };
+        
+        var ticket = await _db.Tickets
+            .Include(t => t.ServiceType)
+            .Where(t => t.BusinessId == businessId && t.CustomerToken == token && activeStatuses.Contains(t.Status))
+            .AsNoTracking()
+            .FirstOrDefaultAsync();
+
+        if (ticket is null) return null;
+
+        var position = await CalculatePositionAsync(ticket);
+        return MapToDto(ticket, ticket.ServiceType.Name, position);
     }
 
     private static TicketDto MapToDto(Ticket ticket, string serviceTypeName, int position) => new(

@@ -20,6 +20,8 @@ public class QueueHubService : IAsyncDisposable
     public event Action<IEnumerable<TicketDto>>? OnQueueUpdated;
     public event Action<TicketDto>? OnTicketCalled;
     public event Action<QueuePositionDto>? OnPositionUpdated;
+    public event Action<TicketDto>? OnTicketAdded;
+    public event Action<TicketDto>? OnTicketUpdated;
 
     public QueueHubService(IConfiguration config, ILogger<QueueHubService> logger)
     {
@@ -47,6 +49,16 @@ public class QueueHubService : IAsyncDisposable
         _hubConnection.On<QueuePositionDto>("PositionUpdated", position =>
         {
             OnPositionUpdated?.Invoke(position);
+        });
+
+        _hubConnection.On<TicketDto>("TicketAdded", ticket =>
+        {
+            OnTicketAdded?.Invoke(ticket);
+        });
+
+        _hubConnection.On<TicketDto>("TicketUpdated", ticket =>
+        {
+            OnTicketUpdated?.Invoke(ticket);
         });
     }
 

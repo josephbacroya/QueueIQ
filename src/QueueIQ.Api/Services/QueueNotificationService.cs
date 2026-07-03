@@ -87,6 +87,24 @@ public class QueueNotificationService : IQueueNotificationService
         await _hubContext.Clients.Group(groupName).TicketCalled(ticket);
     }
 
+    public async Task NotifyTicketAddedAsync(TicketDto ticket)
+    {
+        var slug = await GetSlugAsync(ticket.BusinessId);
+        if (slug is null) return;
+
+        var groupName = QueueHub.GetGroupName(slug);
+        await _hubContext.Clients.Group(groupName).TicketAdded(ticket);
+    }
+
+    public async Task NotifyTicketUpdatedAsync(TicketDto ticket)
+    {
+        var slug = await GetSlugAsync(ticket.BusinessId);
+        if (slug is null) return;
+
+        var groupName = QueueHub.GetGroupName(slug);
+        await _hubContext.Clients.Group(groupName).TicketUpdated(ticket);
+    }
+
     public async Task NotifyPositionUpdatedAsync(Guid ticketId)
     {
         // For now, full queue updates handle everything cleanly on the frontend.

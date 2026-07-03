@@ -21,6 +21,16 @@ public interface IQueueHubClient
     Task QueueUpdated(IEnumerable<TicketDto> queue);
 
     /// <summary>
+    /// Targeted notification when a new ticket joins the queue.
+    /// </summary>
+    Task TicketAdded(TicketDto ticket);
+
+    /// <summary>
+    /// Targeted notification when a ticket's status is updated (or wait time changes).
+    /// </summary>
+    Task TicketUpdated(TicketDto ticket);
+
+    /// <summary>
     /// Targeted notification when a specific ticket is called.
     /// Sent to the business group so the customer's page can react.
     /// </summary>

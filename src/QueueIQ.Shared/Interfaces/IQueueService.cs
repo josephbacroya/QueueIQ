@@ -22,4 +22,7 @@ public interface IQueueService
 
     /// <summary>Get a customer's current position — lightweight, customer-facing.</summary>
     Task<QueuePositionDto?> GetPositionAsync(Guid ticketId);
+
+    /// <summary>Get a customer's active ticket by their anonymous token.</summary>
+    Task<TicketDto?> GetActiveTicketByTokenAsync(Guid businessId, string token);
 }

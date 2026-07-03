@@ -31,11 +31,16 @@ public class PredictionService : IPredictionService
         string serviceTypeName, 
         double avgServiceDurationMins, 
         int queueLength, 
-        int staffOnDuty)
+        int staffOnDuty,
+        string timeZoneId)
     {
         try
         {
-            var now = DateTime.UtcNow;
+            var utcNow = DateTime.UtcNow;
+            
+            // Convert to local time based on Business.TimeZoneId
+            var tzi = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
+            var now = TimeZoneInfo.ConvertTimeFromUtc(utcNow, tzi);
             
             // Note: ML.NET expects 'DayOfWeek' as 0-6 matching Python's datetime.weekday()
             // In C# DayOfWeek enum, Sunday is 0. Python weekday(): Monday is 0.

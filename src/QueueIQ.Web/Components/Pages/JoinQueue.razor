@@ -4,6 +4,7 @@
 @using QueueIQ.Shared.Enums
 @inject IHttpClientFactory ClientFactory
 @inject NavigationManager NavManager
+@inject IJSRuntime JS
 
 <PageTitle>Join Queue - QueueIQ</PageTitle>
 
@@ -84,11 +85,40 @@
     private string? _errorMessage;
     private bool _isSubmitting;
     private HttpClient _api = default!;
+    private string? _customerToken;
 
     protected override async Task OnInitializedAsync()
     {
         _api = ClientFactory.CreateClient("ApiClient");
         await LoadBusinessAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                _customerToken = await JS.InvokeAsync<string>("localStorage.getItem", "customerToken");
+                if (!string.IsNullOrEmpty(_customerToken))
+                {
+                    var response = await _api.GetAsync($"/api/businesses/{Slug}/queue/active-ticket?token={_customerToken}");
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var activeTicket = await response.Content.ReadFromJsonAsync<TicketDto>();
+                        if (activeTicket is not null)
+                        {
+                            NavManager.NavigateTo($"/queue/{Slug}/{activeTicket.Id}");
+                            return;
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                // Ignore JS or network errors during prerendering
+            }
+        }
     }
 
     private async Task LoadBusinessAsync()
@@ -122,10 +152,17 @@
 
         _isSubmitting = true;
         _errorMessage = null;
+        StateHasChanged();
+
+        if (string.IsNullOrEmpty(_customerToken))
+        {
+            _customerToken = Guid.NewGuid().ToString("N")[..12];
+            try { await JS.InvokeVoidAsync("localStorage.setItem", "customerToken", _customerToken); } catch { }
+        }
 
         try
         {
-            var response = await _api.PostAsJsonAsync($"/api/businesses/{Slug}/queue", new CreateTicketDto(_selectedServiceId));
+            var response = await _api.PostAsJsonAsync($"/api/businesses/{Slug}/queue", new CreateTicketDto(_selectedServiceId, _customerToken));
             
             if (response.IsSuccessStatusCode)
             {

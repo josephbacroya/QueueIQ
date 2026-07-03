@@ -51,6 +51,7 @@ public partial class BusinessService : IBusinessService
             Name = dto.Name.Trim(),
             Slug = slug,
             OwnerId = "placeholder-owner", // Will be replaced with Identity user ID
+            TimeZoneId = dto.TimeZoneId,
             CreatedAt = DateTime.UtcNow
         };
 
@@ -79,6 +80,11 @@ public partial class BusinessService : IBusinessService
                 throw new SlugConflictException(newSlug);
             }
             business.Slug = newSlug;
+        }
+
+        if (!string.IsNullOrWhiteSpace(dto.TimeZoneId))
+        {
+            business.TimeZoneId = dto.TimeZoneId;
         }
 
         await _db.SaveChangesAsync();
@@ -136,6 +142,7 @@ public partial class BusinessService : IBusinessService
         business.Id,
         business.Name,
         business.Slug,
+        business.TimeZoneId,
         business.CreatedAt,
         business.ServiceTypes.Select(s => new ServiceTypeDto(s.Id, s.Name, s.AvgDurationMinutes)).ToList()
     );

@@ -8,6 +8,7 @@ public record BusinessDto(
     Guid Id,
     string Name,
     string Slug,
+    string TimeZoneId,
     DateTime CreatedAt,
     List<ServiceTypeDto> ServiceTypes
 );
@@ -18,7 +19,8 @@ public record BusinessDto(
 /// </summary>
 public record CreateBusinessDto(
     string Name,
-    string? Slug = null
+    string? Slug = null,
+    string TimeZoneId = "UTC"
 );
 
 /// <summary>
@@ -26,5 +28,6 @@ public record CreateBusinessDto(
 /// </summary>
 public record UpdateBusinessDto(
     string Name,
-    string? Slug = null
+    string? Slug = null,
+    string? TimeZoneId = null
 );
