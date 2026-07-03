@@ -1,0 +1,5 @@
+{"@t":"2026-07-03T10:49:21.8319299Z","@mt":"User profile is available. Using '{FullName}' as key repository and Windows DPAPI to encrypt keys at rest.","FullName":"C:\\Users\\Joseph\\AppData\\Local\\ASP.NET\\DataProtection-Keys","EventId":{"Id":63,"Name":"UsingProfileAsKeyRepositoryWithDPAPI"},"SourceContext":"Microsoft.AspNetCore.DataProtection.KeyManagement.XmlKeyManager"}
+{"@t":"2026-07-03T10:49:22.1114859Z","@mt":"Now listening on: {address}","address":"http://localhost:5200","EventId":{"Id":14,"Name":"ListeningOnAddress"},"SourceContext":"Microsoft.Hosting.Lifetime"}
+{"@t":"2026-07-03T10:49:22.1141286Z","@mt":"Application started. Press Ctrl+C to shut down.","SourceContext":"Microsoft.Hosting.Lifetime"}
+{"@t":"2026-07-03T10:49:22.1146097Z","@mt":"Hosting environment: {EnvName}","EnvName":"Development","SourceContext":"Microsoft.Hosting.Lifetime"}
+{"@t":"2026-07-03T10:49:22.1146645Z","@mt":"Content root path: {ContentRoot}","ContentRoot":"C:\\Users\\Joseph\\Documents\\QueueIQ\\src\\QueueIQ.Web","SourceContext":"Microsoft.Hosting.Lifetime"}

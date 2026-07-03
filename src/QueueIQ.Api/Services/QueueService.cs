@@ -102,10 +102,10 @@ public class QueueService : IQueueService
             ticket.Id, businessId, serviceType.Name, ticket.PredictedWaitMinutes, ticket.NoShowRiskScore);
         
         // Notify clients that a ticket was added
-        var dto = MapToDto(ticket, serviceType.Name, position);
-        await _notificationService.NotifyTicketAddedAsync(dto);
+        var ticketDto = MapToDto(ticket, serviceType.Name, position);
+        await _notificationService.NotifyTicketAddedAsync(ticketDto);
 
-        return dto;
+        return ticketDto;
     }
 
     public async Task<TicketDto?> CallNextAsync(Guid businessId)
@@ -134,13 +134,13 @@ public class QueueService : IQueueService
             _logger.LogInformation(
                 "Ticket {TicketId} called for business {BusinessId}", nextTicket.Id, businessId);
 
-            var dto = MapToDto(nextTicket, nextTicket.ServiceType.Name, 0);
+            var ticketDto = MapToDto(nextTicket, nextTicket.ServiceType.Name, 0);
 
             // Notify that a specific ticket was called and updated
-            await _notificationService.NotifyTicketCalledAsync(dto);
-            await _notificationService.NotifyTicketUpdatedAsync(dto);
+            await _notificationService.NotifyTicketCalledAsync(ticketDto);
+            await _notificationService.NotifyTicketUpdatedAsync(ticketDto);
 
-            return dto;
+            return ticketDto;
         }
         catch (DbUpdateConcurrencyException)
         {
@@ -195,10 +195,10 @@ public class QueueService : IQueueService
 
         var position = await CalculatePositionAsync(ticket);
         
-        var dto = MapToDto(ticket, ticket.ServiceType.Name, position);
-        await _notificationService.NotifyTicketUpdatedAsync(dto);
+        var ticketDto = MapToDto(ticket, ticket.ServiceType.Name, position);
+        await _notificationService.NotifyTicketUpdatedAsync(ticketDto);
 
-        return dto;
+        return ticketDto;
     }
 
     public async Task<IEnumerable<TicketDto>> GetQueueAsync(Guid businessId)
