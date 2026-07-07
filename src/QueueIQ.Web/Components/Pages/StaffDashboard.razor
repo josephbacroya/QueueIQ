@@ -175,7 +175,14 @@
         HubService.OnTicketAdded += HandleTicketAdded;
         HubService.OnTicketUpdated += HandleTicketUpdated;
         await LoadQueueAsync();
-        await HubService.StartAsync(Slug);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await HubService.StartAsync(Slug);
+        }
     }
 
     private async Task LoadQueueAsync()

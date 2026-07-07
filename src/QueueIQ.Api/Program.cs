@@ -82,10 +82,8 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowBlazor", policy =>
     {
         policy.WithOrigins(
-                "https://localhost:5001",
-                "http://localhost:5000",
-                "https://localhost:7001",
-                "http://localhost:5173")
+                "http://localhost:5199",
+                "https://localhost:7104")
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials(); // Required for SignalR in Phase 2
