@@ -101,21 +101,23 @@
     private bool _isLoading = true;
     private HttpClient _api = default!;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         _api = ClientFactory.CreateClient("ApiClient");
         HubService.OnTicketUpdated += HandleTicketUpdated;
         HubService.OnTicketAdded += HandleTicketAdded;
-        
-        await LoadPositionAsync();
-        
-        _isLoading = false;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
+            // Load position data AFTER the interactive circuit is connected,
+            // so prerendering isn't blocked and @onclick handlers work immediately.
+            await LoadPositionAsync();
+            _isLoading = false;
+            StateHasChanged();
+
             await HubService.StartAsync(Slug);
         }
     }

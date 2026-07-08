@@ -9,7 +9,13 @@
 <PageTitle>Join Queue - QueueIQ</PageTitle>
 
 <div class="container mt-5 px-3 max-w-md mx-auto" style="max-width: 500px;">
-    @if (_business is null)
+    @if (_errorMessage is not null)
+    {
+        <div class="alert shadow-sm border-0 rounded-3 mb-4" role="alert" style="background-color: var(--surface-3); color: var(--red); border: 1px solid var(--red) !important;">
+            @_errorMessage
+        </div>
+    }
+    else if (_business is null)
     {
         <div class="text-center py-5">
             <div class="spinner-border" style="color: var(--blue);" role="status"></div>
@@ -33,13 +39,6 @@
                 <h2 class="fw-bold mb-2 font-space text-gradient">@_business.Name</h2>
                 <p class="mb-0" style="color: var(--text-2);">Select a service to join the queue</p>
             </div>
-            
-            @if (_errorMessage is not null)
-            {
-                <div class="alert shadow-sm border-0 rounded-3 mb-4" role="alert" style="background-color: var(--surface-3); color: var(--red); border: 1px solid var(--red) !important;">
-                    @_errorMessage
-                </div>
-            }
 
             <div class="mb-5">
                 @foreach (var service in _business.ServiceTypes)
@@ -87,16 +86,20 @@
     private HttpClient _api = default!;
     private string? _customerToken;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         _api = ClientFactory.CreateClient("ApiClient");
-        await LoadBusinessAsync();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
+            // Load business data AFTER the interactive circuit is connected,
+            // so prerendering isn't blocked and @onclick handlers work immediately.
+            await LoadBusinessAsync();
+            StateHasChanged();
+
             try
             {
                 _customerToken = await JS.InvokeAsync<string>("localStorage.getItem", "customerToken");
@@ -116,7 +119,7 @@
             }
             catch
             {
-                // Ignore JS or network errors during prerendering
+                // Ignore JS or network errors
             }
         }
     }

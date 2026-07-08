@@ -169,18 +169,22 @@
     private IEnumerable<TicketDto> InServiceTickets => _queue.Where(t => t.Status == TicketStatus.InService);
     private bool HasWaitingCustomers => WaitingTickets.Any();
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         _api = ClientFactory.CreateClient("ApiClient");
         HubService.OnTicketAdded += HandleTicketAdded;
         HubService.OnTicketUpdated += HandleTicketUpdated;
-        await LoadQueueAsync();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
+            // Load queue data AFTER the interactive circuit is connected,
+            // so prerendering isn't blocked and @onclick handlers work immediately.
+            await LoadQueueAsync();
+            StateHasChanged();
+
             await HubService.StartAsync(Slug);
         }
     }
